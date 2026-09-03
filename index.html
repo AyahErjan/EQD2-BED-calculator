@@ -1,0 +1,1116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BED &amp; EQD2 Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens ─────────────────────────────────────────────────────────── */
+:root {
+  --bg:           #F6F7F9;
+  --surface:      #FFFFFF;
+  --border:       #DDE3EA;
+  --accent:       #0C8599;
+  --accent-hover: #0A7285;
+  --navy:         #152238;
+  --text:         #1A2535;
+  --text2:        #506070;
+  --text3:        #8A98A8;
+  --warn-bg:      #FBEEDB;
+  --warn-text:    #C8790F;
+  --warn-border:  #F0C077;
+  --ok-bg:        #E9F7EE;
+  --ok-text:      #2F9E58;
+  --ok-border:    #9EDBB3;
+  --err-bg:       #FEF0F0;
+  --err-text:     #C0392B;
+  --radius:       10px;
+  --shadow:       0 1px 3px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:          #0D1520;
+    --surface:     #18243A;
+    --border:      #253448;
+    --navy:        #090F1C;
+    --text:        #E0E8F2;
+    --text2:       #8898B2;
+    --text3:       #566278;
+    --warn-bg:     #271A08;
+    --warn-text:   #E8A040;
+    --warn-border: #5A3A10;
+    --ok-bg:       #08200F;
+    --ok-text:     #48CC72;
+    --ok-border:   #184828;
+    --err-bg:      #280C0C;
+    --err-text:    #E06060;
+    --shadow:      0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg:          #0D1520;
+  --surface:     #18243A;
+  --border:      #253448;
+  --navy:        #090F1C;
+  --text:        #E0E8F2;
+  --text2:       #8898B2;
+  --text3:       #566278;
+  --warn-bg:     #271A08;
+  --warn-text:   #E8A040;
+  --warn-border: #5A3A10;
+  --ok-bg:       #08200F;
+  --ok-text:     #48CC72;
+  --ok-border:   #184828;
+  --err-bg:      #280C0C;
+  --err-text:    #E06060;
+  --shadow:      0 1px 4px rgba(0,0,0,.3), 0 4px 16px rgba(0,0,0,.25);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+h1, h2, h3, .display {
+  font-family: 'Space Grotesk', -apple-system, sans-serif;
+}
+
+.mono {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────── */
+.page-header {
+  background: var(--navy);
+  padding: 28px 24px 30px;
+}
+.page-header-inner { max-width: 1200px; margin: 0 auto; }
+.page-eyebrow {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: #4A7AA0;
+  margin-bottom: 6px;
+}
+.page-header h1 {
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  color: #fff;
+  text-wrap: balance;
+}
+.page-header p {
+  color: #6A8CAC;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.page-body {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+}
+.two-col {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 860px) {
+  .two-col { grid-template-columns: 1fr; }
+}
+
+/* ── Cards ───────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+}
+.card + .card { margin-top: 18px; }
+.card-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .09em;
+  color: var(--text3);
+  margin-bottom: 16px;
+}
+
+/* ── Forms ───────────────────────────────────────────────────────────── */
+.form-group { margin-bottom: 14px; }
+.form-group:last-child { margin-bottom: 0; }
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 5px;
+}
+input[type="number"], select {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color .15s, box-shadow .15s;
+  appearance: auto;
+}
+input[type="number"]:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(12,133,153,.14);
+}
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.hint {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.err-msg {
+  font-size: 12px;
+  color: var(--err-text);
+  margin-top: 4px;
+  display: none;
+}
+
+/* ── Toggle switches ─────────────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+.toggle-label-text {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+.toggle-subtitle {
+  font-size: 12px;
+  color: var(--text3);
+  margin-left: 54px;
+  margin-bottom: 14px;
+}
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 23px;
+  flex-shrink: 0;
+}
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 23px;
+  cursor: pointer;
+  transition: background .2s;
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 17px; height: 17px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.toggle input:checked + .toggle-track { background: var(--accent); }
+.toggle input:checked + .toggle-track::after { transform: translateX(19px); }
+.toggle input:focus-visible + .toggle-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── AB display ──────────────────────────────────────────────────────── */
+.ab-display {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 5px;
+  font-style: italic;
+}
+
+/* ── Live D display ──────────────────────────────────────────────────── */
+.live-d {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  background: rgba(12,133,153,.07);
+  border: 1px solid rgba(12,133,153,.18);
+  border-radius: 7px;
+  padding: 9px 13px;
+  margin: 14px 0 16px;
+}
+.live-d-label { font-size: 13px; color: var(--text2); }
+.live-d-value {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Result cards ────────────────────────────────────────────────────── */
+.res-card {
+  border-radius: var(--radius);
+  padding: 16px 18px 18px;
+}
+.res-card-label {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  opacity: .65;
+  margin-bottom: 5px;
+}
+.res-card-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+}
+.res-card-unit {
+  font-size: .95rem;
+  opacity: .55;
+  margin-left: 3px;
+}
+.res-navy  { background: var(--navy); color: #E4EAF4; }
+.res-teal  { background: var(--accent); color: #fff; }
+.res-light { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+.res-light .res-card-label { color: var(--text2); opacity: 1; }
+.res-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── Interval display ────────────────────────────────────────────────── */
+.interval-val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1.15rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.2;
+}
+.interval-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* ── Warning / success / error notice boxes ──────────────────────────── */
+.notice {
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+.notice-warn   { background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text); }
+.notice-ok     { background: var(--ok-bg);   border: 1px solid var(--ok-border);   color: var(--ok-text);   }
+.notice-err    { background: var(--err-bg);  border: 1px solid var(--err-text);    color: var(--err-text);  }
+
+/* ── Histogram ───────────────────────────────────────────────────────── */
+.hist-wrap { margin-top: 16px; }
+.hist-caption { font-size: 12px; color: var(--text3); margin-bottom: 7px; }
+#hist-svg-wrap svg { display: block; width: 100%; border-radius: 6px; }
+
+/* ── Validation table ────────────────────────────────────────────────── */
+.val-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  overflow-x: auto;
+}
+.val-table th {
+  text-align: left;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  padding: 7px 11px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.val-table td {
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border);
+  font-family: 'IBM Plex Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.val-table tr:last-child td { border-bottom: none; }
+.td-label { font-family: inherit; font-size: 12px; color: var(--text2); }
+.pass { color: var(--ok-text);  font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+.fail { color: var(--err-text); font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+.val-summary { margin-top: 11px; font-size: 14px; font-weight: 500; }
+
+/* ── OAR note ────────────────────────────────────────────────────────── */
+.oar-note { font-size: 12px; color: var(--text3); margin-top: 9px; line-height: 1.5; }
+
+/* ── Dividers and spacing ────────────────────────────────────────────── */
+.gap { height: 18px; }
+.full-row { grid-column: 1 / -1; }
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 22px 0;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+.footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 26px 24px 30px;
+  margin-top: 36px;
+}
+.footer-inner { max-width: 1200px; margin: 0 auto; }
+.formula-block {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="page-header-inner">
+    <p class="page-eyebrow">Radiotherapy Planning Tool</p>
+    <h1>BED &amp; EQD2 Calculator</h1>
+    <p>Linear-quadratic model · Monte Carlo α/β propagation</p>
+  </div>
+</header>
+
+<main class="page-body">
+  <div class="two-col">
+
+    <!-- ═══════════════ LEFT: INPUTS ═══════════════ -->
+    <div id="col-inputs">
+
+      <!-- Section 1: Current course -->
+      <div class="card">
+        <div class="card-title">Current Course</div>
+
+        <div class="form-group">
+          <label for="inp-n">Number of fractions (n)</label>
+          <input type="number" id="inp-n" min="1" step="1" value="25">
+          <div class="err-msg" id="err-n">Enter a whole number ≥ 1</div>
+        </div>
+
+        <div class="form-group">
+          <label for="inp-d">Dose per fraction (Gy)</label>
+          <input type="number" id="inp-d" min="0.01" step="0.01" value="2.00">
+          <div class="err-msg" id="err-d">Enter a value ≥ 0.01 Gy</div>
+        </div>
+
+        <!-- Live total dose -->
+        <div class="live-d">
+          <span class="live-d-label">Total dose D =</span>
+          <span class="live-d-value" id="live-D">50.00</span>
+          <span class="live-d-label">Gy</span>
+        </div>
+
+        <div class="form-group">
+          <label for="inp-tissue">Tissue / α/β</label>
+          <select id="inp-tissue">
+            <option value="tumor-generic">Tumor — generic</option>
+            <option value="hn-mucosa">Head &amp; neck mucosa</option>
+            <option value="prostate">Prostate tumor</option>
+            <option value="breast">Breast tumor</option>
+            <option value="late-normal">Late-reacting normal</option>
+            <option value="spinal-cord">Spinal cord</option>
+            <option value="lung-late">Lung (late)</option>
+            <option value="custom">Custom (manual entry)</option>
+          </select>
+          <div class="ab-display" id="ab-display">α/β = 10 Gy, range 8 to 12 Gy</div>
+        </div>
+
+        <!-- Custom α/β inputs -->
+        <div id="custom-ab" hidden>
+          <div class="input-row">
+            <div class="form-group">
+              <label for="inp-ab-pt">α/β point estimate (Gy)</label>
+              <input type="number" id="inp-ab-pt" min="0.01" step="0.01" value="3.00">
+              <div class="err-msg" id="err-ab-pt">Enter a value &gt; 0</div>
+            </div>
+            <div class="form-group">
+              <label for="inp-ab-lo">Range low (Gy)</label>
+              <input type="number" id="inp-ab-lo" min="0.01" step="0.01" value="2.00">
+              <div class="err-msg" id="err-ab-lo">Enter a value &gt; 0</div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="inp-ab-hi">Range high (Gy)</label>
+            <input type="number" id="inp-ab-hi" min="0.01" step="0.01" value="5.00">
+            <div class="err-msg" id="err-ab-hi">Must be ≥ range low</div>
+          </div>
+        </div>
+      </div><!-- /card current course -->
+
+      <!-- Section 4: Prior course -->
+      <div class="card">
+        <div class="toggle-row">
+          <label class="toggle">
+            <input type="checkbox" id="tog-prior">
+            <span class="toggle-track"></span>
+          </label>
+          <span class="toggle-label-text">Prior course</span>
+        </div>
+        <p class="toggle-subtitle">(re-irradiation)</p>
+
+        <div id="prior-inputs" hidden>
+          <div class="form-group">
+            <label for="inp-np">Prior fractions (n_prior)</label>
+            <input type="number" id="inp-np" min="1" step="1" value="25">
+            <div class="err-msg" id="err-np">Enter a whole number ≥ 1</div>
+          </div>
+          <div class="form-group">
+            <label for="inp-dp">Prior dose per fraction (Gy)</label>
+            <input type="number" id="inp-dp" min="0.01" step="0.01" value="2.00">
+            <div class="err-msg" id="err-dp">Enter a value ≥ 0.01 Gy</div>
+          </div>
+          <div class="form-group">
+            <label>Recovery factor γ</label>
+            <div class="input-row">
+              <div>
+                <label for="inp-glo" style="font-size:12px;">Low</label>
+                <input type="number" id="inp-glo" min="0" max="1" step="0.01" value="1.00">
+              </div>
+              <div>
+                <label for="inp-ghi" style="font-size:12px;">High</label>
+                <input type="number" id="inp-ghi" min="0" max="1" step="0.01" value="1.00">
+              </div>
+            </div>
+            <p class="hint">γ = 1: no recovery (conservative, recommended for spinal cord). γ = 0: full recovery.</p>
+          </div>
+        </div>
+      </div><!-- /card prior -->
+
+    </div><!-- /col-inputs -->
+
+    <!-- ═══════════════ RIGHT: RESULTS ═══════════════ -->
+    <div id="col-results">
+
+      <!-- Section 2: Point estimates -->
+      <div class="card">
+        <div class="card-title">Point Estimates</div>
+
+        <!-- Total dose — full-width teal -->
+        <div class="res-card res-teal" style="margin-bottom:10px;">
+          <div class="res-card-label">Total Dose (D)</div>
+          <div>
+            <span class="res-card-val" id="res-D">50.00</span>
+            <span class="res-card-unit">Gy</span>
+          </div>
+        </div>
+
+        <div class="res-grid-2">
+          <div class="res-card res-navy">
+            <div class="res-card-label">BED</div>
+            <div>
+              <span class="res-card-val" id="res-BED">60.00</span>
+              <span class="res-card-unit">Gy</span>
+            </div>
+          </div>
+          <div class="res-card res-navy">
+            <div class="res-card-label">EQD2</div>
+            <div>
+              <span class="res-card-val" id="res-EQD2">50.00</span>
+              <span class="res-card-unit">Gy</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="notice notice-err" id="notice-input-err" style="display:none;margin-top:10px;"></div>
+      </div>
+
+      <!-- Section 3: Uncertainty analysis -->
+      <div class="card">
+        <div class="toggle-row" style="margin-bottom:14px;">
+          <label class="toggle">
+            <input type="checkbox" id="tog-mc" checked>
+            <span class="toggle-track"></span>
+          </label>
+          <span class="toggle-label-text">Uncertainty analysis</span>
+        </div>
+
+        <div id="mc-section">
+          <div class="res-grid-2">
+            <div class="res-card res-light">
+              <div class="res-card-label">EQD2 Median</div>
+              <div>
+                <span class="res-card-val" id="mc-median" style="font-size:1.6rem;">—</span>
+                <span class="res-card-unit">Gy</span>
+              </div>
+            </div>
+            <div class="res-card res-light">
+              <div class="res-card-label">90% Interval</div>
+              <div class="interval-val" id="mc-interval">— – —</div>
+              <div class="interval-sub">5th – 95th percentile, Gy</div>
+            </div>
+          </div>
+
+          <!-- Histogram -->
+          <div class="hist-wrap">
+            <p class="hist-caption">EQD2 distribution across sampled α/β values (n = 5 000 iterations)</p>
+            <div id="hist-svg-wrap"></div>
+          </div>
+        </div>
+      </div><!-- /card mc -->
+
+      <!-- Section 4 results: cumulative -->
+      <div class="card" id="cum-section" hidden>
+        <div class="card-title">Cumulative Dose — Re-irradiation</div>
+
+        <div class="res-grid-2" id="cum-grid-bed" style="margin-bottom:10px;">
+          <div class="res-card res-navy">
+            <div class="res-card-label" id="cum-bed-label">Cum. BED Median</div>
+            <div>
+              <span class="res-card-val" id="cum-bed-med" style="font-size:1.5rem;">—</span>
+              <span class="res-card-unit">Gy</span>
+            </div>
+          </div>
+          <div class="res-card res-light" id="cum-bed-int-card">
+            <div class="res-card-label">Cum. BED 90% Interval</div>
+            <div class="interval-val" id="cum-bed-int">— – —</div>
+            <div class="interval-sub">5th – 95th percentile, Gy</div>
+          </div>
+        </div>
+
+        <div class="res-grid-2" id="cum-grid-eqd2">
+          <div class="res-card res-navy">
+            <div class="res-card-label" id="cum-eqd2-label">Cum. EQD2 Median</div>
+            <div>
+              <span class="res-card-val" id="cum-eqd2-med" style="font-size:1.5rem;">—</span>
+              <span class="res-card-unit">Gy</span>
+            </div>
+          </div>
+          <div class="res-card res-light" id="cum-eqd2-int-card">
+            <div class="res-card-label">Cum. EQD2 90% Interval</div>
+            <div class="interval-val" id="cum-eqd2-int">— – —</div>
+            <div class="interval-sub">5th – 95th percentile, Gy</div>
+          </div>
+        </div>
+
+        <div class="notice notice-warn" style="margin-top:14px;">
+          ⚠ This assumes spatial coincidence of dose distributions between courses. This is a worst-case scalar surrogate, not a spatially-registered cumulative dose. Recovery factor is uncertain and organ-specific.
+        </div>
+      </div>
+
+      <!-- Section 5: OAR constraint flagging -->
+      <div class="card" id="oar-section" hidden>
+        <div class="card-title">OAR Constraint Flag</div>
+        <div id="oar-flag"></div>
+        <p class="oar-note">Constraint values are illustrative. Always refer to current QUANTEC/HyTEC guidance and consult medical physics.</p>
+      </div>
+
+    </div><!-- /col-results -->
+  </div><!-- /two-col -->
+
+  <!-- Section 6: Validation panel (full width) -->
+  <div class="gap"></div>
+  <div class="card" style="margin-top:4px;">
+    <div class="card-title">Self-test — Reference Cases</div>
+    <div style="overflow-x:auto;">
+      <table class="val-table">
+        <thead>
+          <tr>
+            <th>Case</th>
+            <th>n</th>
+            <th>d (Gy)</th>
+            <th>α/β (Gy)</th>
+            <th>BED computed</th>
+            <th>BED expected</th>
+            <th>EQD2 computed</th>
+            <th>EQD2 expected</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody id="val-tbody"></tbody>
+      </table>
+    </div>
+    <div class="val-summary" id="val-summary"></div>
+  </div>
+</main>
+
+<!-- Section 7: Footer -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="formula-block">
+      BED  = n × d × (1 + d / (α/β))<br>
+      EQD2 = D × (d + α/β) / (2 + α/β)<br>
+      Cumulative EQD2 = EQD2(current) + γ × EQD2(prior)
+    </div>
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+// PLACEHOLDER VALUES — replace with cited tissue-specific literature sources before clinical use
+const AB_RANGES = {
+  'tumor-generic': { label: 'Tumor — generic',      point: 10,  lo: 8,    hi: 12   },
+  'hn-mucosa':     { label: 'Head & neck mucosa',   point: 10,  lo: 7,    hi: 12   },
+  'prostate':      { label: 'Prostate tumor',       point: 1.5, lo: 1.5,  hi: 3    },
+  'breast':        { label: 'Breast tumor',         point: 4,   lo: 3,    hi: 4.6  },
+  'late-normal':   { label: 'Late-reacting normal', point: 3,   lo: 2,    hi: 5    },
+  'spinal-cord':   { label: 'Spinal cord',          point: 2,   lo: 0.87, hi: 4.9  },
+  'lung-late':     { label: 'Lung (late)',          point: 3,   lo: 2.5,  hi: 6    },
+  'custom':        { label: 'Custom',               point: null, lo: null, hi: null }
+};
+
+const OAR_CONSTRAINTS = {
+  'spinal-cord': { name: 'Spinal cord', limit: 50 },
+  'lung-late':   { name: 'Lung (late)', limit: 20 }
+};
+
+/* ── Core formulas ─────────────────────────────────────────────────────── */
+function computeBED(n, d, ab) {
+  return n * d * (1 + d / ab);
+}
+
+function computeEQD2(n, d, ab) {
+  return (n * d) * (d + ab) / (2 + ab);
+}
+
+/* ── Triangular distribution sampler ───────────────────────────────────────
+   Triangular distribution is used because it requires only three clinically
+   meaningful parameters (minimum, most-likely, maximum) without assuming
+   symmetry, making it well-suited to expert-elicited α/β uncertainty ranges
+   where a full parametric distribution cannot be justified.
+─────────────────────────────────────────────────────────────────────────── */
+function triangularSample(lo, mode, hi) {
+  if (hi <= lo) return mode;
+  const u = Math.random();
+  const c = (mode - lo) / (hi - lo);
+  if (u < c) return lo + Math.sqrt(u * (hi - lo) * (mode - lo));
+  return hi - Math.sqrt((1 - u) * (hi - lo) * (hi - mode));
+}
+
+function percentileInterp(sorted, p) {
+  const n = sorted.length;
+  const idx = (p / 100) * (n - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  if (lo === hi) return sorted[lo];
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+
+/* ── Monte Carlo ────────────────────────────────────────────────────────── */
+function runMonteCarlo(n, d, abLo, abMode, abHi, nPrior, dPrior, gammaLo, gammaHi, includePrior) {
+  const N = 5000;
+  const eqd2S = [], bedS = [], cumEqd2S = [], cumBedS = [];
+
+  for (let i = 0; i < N; i++) {
+    const ab   = triangularSample(abLo, abMode, abHi);
+    const bed  = computeBED(n, d, ab);
+    const eqd2 = computeEQD2(n, d, ab);
+    bedS.push(bed);
+    eqd2S.push(eqd2);
+
+    if (includePrior) {
+      const bedPr  = computeBED(nPrior, dPrior, ab);
+      const eqd2Pr = computeEQD2(nPrior, dPrior, ab);
+      const r      = (gammaLo + gammaHi) / 2;
+      cumBedS.push(bed + bedPr);
+      cumEqd2S.push(eqd2 + r * eqd2Pr);
+    }
+  }
+
+  eqd2S.sort((a, b) => a - b);
+  bedS.sort((a, b) => a - b);
+
+  const result = {
+    eqd2: {
+      p5:  percentileInterp(eqd2S, 5),
+      p50: percentileInterp(eqd2S, 50),
+      p95: percentileInterp(eqd2S, 95),
+      samples: eqd2S
+    },
+    bed: {
+      p5:  percentileInterp(bedS, 5),
+      p50: percentileInterp(bedS, 50),
+      p95: percentileInterp(bedS, 95)
+    }
+  };
+
+  if (includePrior) {
+    cumEqd2S.sort((a, b) => a - b);
+    cumBedS.sort((a, b) => a - b);
+    result.cumEqd2 = {
+      p5:  percentileInterp(cumEqd2S, 5),
+      p50: percentileInterp(cumEqd2S, 50),
+      p95: percentileInterp(cumEqd2S, 95)
+    };
+    result.cumBed = {
+      p5:  percentileInterp(cumBedS, 5),
+      p50: percentileInterp(cumBedS, 50),
+      p95: percentileInterp(cumBedS, 95)
+    };
+  }
+
+  return result;
+}
+
+/* ── Histogram ──────────────────────────────────────────────────────────── */
+function drawHistogram(samples) {
+  const wrap = document.getElementById('hist-svg-wrap');
+  const BINS = 28, TICKS = 6;
+  const W = 520, H = 168, pL = 10, pR = 10, pT = 10, pB = 50;
+  const iW = W - pL - pR;
+  const iH = H - pT - pB;
+
+  const min = samples[0], max = samples[samples.length - 1];
+  const degenerate = Math.abs(max - min) < 1e-9;
+  const range = degenerate ? 1 : max - min;
+  const binW  = range / BINS;
+  const counts = new Array(BINS).fill(0);
+
+  if (degenerate) {
+    counts[Math.floor(BINS / 2)] = samples.length;
+  } else {
+    for (const s of samples) {
+      let b = Math.floor((s - min) / binW);
+      if (b >= BINS) b = BINS - 1;
+      counts[b]++;
+    }
+  }
+
+  const maxC = Math.max(...counts);
+  const bW   = iW / BINS;
+  const axY  = pT + iH;
+
+  /* Theme detection */
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
+    (!document.documentElement.getAttribute('data-theme') &&
+      window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const surfColor = isDark ? '#18243A' : '#FFFFFF';
+  const axColor   = isDark ? '#2D4060' : '#C8D4E0';
+  const txtColor  = isDark ? '#566278' : '#8A98A8';
+
+  let bars = '';
+  for (let i = 0; i < BINS; i++) {
+    if (!counts[i]) continue;
+    const bH = (counts[i] / maxC) * iH;
+    const x  = pL + i * bW;
+    const y  = axY - bH;
+    bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bW - 1.2).toFixed(1)}" height="${bH.toFixed(1)}" fill="#0C8599" rx="1.5"/>`;
+  }
+
+  let ticks = '';
+  for (let i = 0; i < TICKS; i++) {
+    const frac = i / (TICKS - 1);
+    const xPos = pL + frac * iW;
+    const val  = degenerate ? min : min + frac * range;
+    const anchor = i === 0 ? 'start' : i === TICKS - 1 ? 'end' : 'middle';
+    ticks += `<line x1="${xPos.toFixed(1)}" y1="${axY}" x2="${xPos.toFixed(1)}" y2="${(axY + 5).toFixed(1)}" stroke="${axColor}" stroke-width="1"/>`;
+    ticks += `<text x="${xPos.toFixed(1)}" y="${(axY + 17).toFixed(1)}" text-anchor="${anchor}" fill="${txtColor}" font-size="10.5" font-family="IBM Plex Mono,monospace">${val.toFixed(1)}</text>`;
+  }
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-label="EQD2 distribution histogram" role="img">
+    <rect width="${W}" height="${H}" fill="${surfColor}" rx="6"/>
+    <line x1="${pL}" y1="${axY}" x2="${pL + iW}" y2="${axY}" stroke="${axColor}" stroke-width="1"/>
+    ${bars}
+    ${ticks}
+    <text x="${(W / 2).toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle" fill="${txtColor}" font-size="11.5" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" letter-spacing="0.02em">EQD2 (Gy)</text>
+  </svg>`;
+
+  wrap.innerHTML = svg;
+}
+
+/* ── DOM refs ────────────────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const inpN   = $('inp-n');   const inpD   = $('inp-d');
+const inpTis = $('inp-tissue');
+const inpAbPt= $('inp-ab-pt'); const inpAbLo= $('inp-ab-lo'); const inpAbHi= $('inp-ab-hi');
+const inpNp  = $('inp-np');  const inpDp  = $('inp-dp');
+const inpGlo = $('inp-glo'); const inpGhi = $('inp-ghi');
+const togMc  = $('tog-mc');  const togPrior=$('tog-prior');
+
+/* ── Show/hide error messages ─────────────────────────────────────────── */
+function setErr(id, show) {
+  const el = $(id);
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+
+/* ── Read and validate inputs ─────────────────────────────────────────── */
+function readInputs() {
+  const n = parseFloat(inpN.value);
+  const d = parseFloat(inpD.value);
+  const tissue = inpTis.value;
+  let ab, abLo, abHi, valid = true;
+
+  // Validate n
+  if (!Number.isFinite(n) || n < 1 || !Number.isInteger(n)) {
+    setErr('err-n', true); valid = false;
+  } else { setErr('err-n', false); }
+
+  // Validate d
+  if (!Number.isFinite(d) || d < 0.01) {
+    setErr('err-d', true); valid = false;
+  } else { setErr('err-d', false); }
+
+  if (tissue === 'custom') {
+    ab   = parseFloat(inpAbPt.value);
+    abLo = parseFloat(inpAbLo.value);
+    abHi = parseFloat(inpAbHi.value);
+    if (!Number.isFinite(ab)   || ab   <= 0)    { setErr('err-ab-pt', true); valid = false; } else setErr('err-ab-pt', false);
+    if (!Number.isFinite(abLo) || abLo <= 0)    { setErr('err-ab-lo', true); valid = false; } else setErr('err-ab-lo', false);
+    if (!Number.isFinite(abHi) || abHi < abLo)  { setErr('err-ab-hi', true); valid = false; } else setErr('err-ab-hi', false);
+  } else {
+    const t = AB_RANGES[tissue];
+    ab = t.point; abLo = t.lo; abHi = t.hi;
+    setErr('err-ab-pt', false); setErr('err-ab-lo', false); setErr('err-ab-hi', false);
+  }
+
+  return { n, d, ab, abLo, abHi, valid };
+}
+
+function readPriorInputs() {
+  const nP = parseFloat(inpNp.value);
+  const dP = parseFloat(inpDp.value);
+  const gLo = parseFloat(inpGlo.value);
+  const gHi = parseFloat(inpGhi.value);
+  let valid = true;
+  if (!Number.isFinite(nP) || nP < 1 || !Number.isInteger(nP)) { setErr('err-np', true); valid = false; } else setErr('err-np', false);
+  if (!Number.isFinite(dP) || dP < 0.01) { setErr('err-dp', true); valid = false; } else setErr('err-dp', false);
+  const gammaLo = Number.isFinite(gLo) ? gLo : 1;
+  const gammaHi = Number.isFinite(gHi) ? gHi : 1;
+  return { nP, dP, gammaLo, gammaHi, valid };
+}
+
+/* ── Cumulative card presentation ──────────────────────────────────────────
+   With uncertainty analysis ON the cards report the Monte Carlo median plus a
+   90% interval. With it OFF there is no distribution, so the interval cards
+   are hidden and the remaining cards are relabelled as point estimates.
+─────────────────────────────────────────────────────────────────────────── */
+function setCumulativeMode(mcOn) {
+  $('cum-bed-int-card').hidden  = !mcOn;
+  $('cum-eqd2-int-card').hidden = !mcOn;
+  $('cum-grid-bed').style.gridTemplateColumns  = mcOn ? '' : '1fr';
+  $('cum-grid-eqd2').style.gridTemplateColumns = mcOn ? '' : '1fr';
+  $('cum-bed-label').textContent  = mcOn ? 'Cum. BED Median'  : 'Cumulative BED';
+  $('cum-eqd2-label').textContent = mcOn ? 'Cum. EQD2 Median' : 'Cumulative EQD2';
+}
+
+/* ── Main update ──────────────────────────────────────────────────────── */
+function update() {
+  const tissue = inpTis.value;
+
+  /* Live D */
+  const rawN = parseFloat(inpN.value), rawD = parseFloat(inpD.value);
+  if (Number.isFinite(rawN) && Number.isFinite(rawD)) {
+    const liveD = rawN * rawD;
+    $('live-D').textContent = liveD.toFixed(2);
+  }
+
+  /* α/β display text */
+  const abDisp = $('ab-display');
+  if (tissue === 'custom') {
+    const p = parseFloat(inpAbPt.value), lo = parseFloat(inpAbLo.value), hi = parseFloat(inpAbHi.value);
+    abDisp.textContent = (Number.isFinite(p) && Number.isFinite(lo) && Number.isFinite(hi))
+      ? `α/β = ${p} Gy, range ${lo} to ${hi} Gy` : '';
+  } else {
+    const t = AB_RANGES[tissue];
+    abDisp.textContent = `α/β = ${t.point} Gy, range ${t.lo} to ${t.hi} Gy`;
+  }
+
+  /* Validate */
+  const inp = readInputs();
+  const errEl = $('notice-input-err');
+
+  if (!inp.valid) {
+    errEl.textContent = 'Fix input errors above to see results.';
+    errEl.style.display = 'block';
+    $('res-D').textContent = '—';
+    $('res-BED').textContent = '—';
+    $('res-EQD2').textContent = '—';
+    $('mc-median').textContent = '—';
+    $('mc-interval').textContent = '— – —';
+    $('hist-svg-wrap').innerHTML = '';
+    $('cum-section').hidden = true;
+    $('oar-section').hidden = true;
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const { n, d, ab, abLo, abHi } = inp;
+  const D   = n * d;
+  const bed = computeBED(n, d, ab);
+  const eqd2 = computeEQD2(n, d, ab);
+
+  $('live-D').textContent   = D.toFixed(2);
+  $('res-D').textContent    = D.toFixed(2);
+  $('res-BED').textContent  = bed.toFixed(2);
+  $('res-EQD2').textContent = eqd2.toFixed(2);
+
+  const mcOn    = togMc.checked;
+  const priorOn = togPrior.checked;
+  let mcResult  = null;
+  let eqd2p95   = null; // for OAR flag
+
+  if (mcOn) {
+    const priorInp = priorOn ? readPriorInputs() : null;
+    const includePrior = priorOn && priorInp && priorInp.valid;
+    const nP = includePrior ? priorInp.nP : 1;
+    const dP = includePrior ? priorInp.dP : 2;
+    const gLo = includePrior ? priorInp.gammaLo : 1;
+    const gHi = includePrior ? priorInp.gammaHi : 1;
+
+    mcResult = runMonteCarlo(n, d, abLo, ab, abHi, nP, dP, gLo, gHi, includePrior);
+
+    $('mc-median').textContent  = mcResult.eqd2.p50.toFixed(2);
+    $('mc-interval').textContent = `${mcResult.eqd2.p5.toFixed(2)} – ${mcResult.eqd2.p95.toFixed(2)} Gy`;
+    drawHistogram(mcResult.eqd2.samples);
+    eqd2p95 = mcResult.eqd2.p95;
+
+    if (includePrior && mcResult.cumEqd2) {
+      setCumulativeMode(true);
+      $('cum-bed-med').textContent  = mcResult.cumBed.p50.toFixed(2);
+      $('cum-bed-int').textContent  = `${mcResult.cumBed.p5.toFixed(2)} – ${mcResult.cumBed.p95.toFixed(2)} Gy`;
+      $('cum-eqd2-med').textContent = mcResult.cumEqd2.p50.toFixed(2);
+      $('cum-eqd2-int').textContent = `${mcResult.cumEqd2.p5.toFixed(2)} – ${mcResult.cumEqd2.p95.toFixed(2)} Gy`;
+      $('cum-section').hidden = false;
+      eqd2p95 = mcResult.cumEqd2.p95; // override when prior active
+    } else {
+      $('cum-section').hidden = true;
+    }
+  } else {
+    // MC off — show point-estimate cumulative values when prior course is active
+    eqd2p95 = eqd2;
+    const priorInp = priorOn ? readPriorInputs() : null;
+    if (priorOn && priorInp.valid) {
+      const r        = (priorInp.gammaLo + priorInp.gammaHi) / 2;
+      const bedPr    = computeBED(priorInp.nP, priorInp.dP, ab);
+      const eqd2Pr   = computeEQD2(priorInp.nP, priorInp.dP, ab);
+      const cumBedPt = bed + bedPr;
+      const cumEqPt  = eqd2 + r * eqd2Pr;
+
+      setCumulativeMode(false);
+      $('cum-bed-med').textContent  = cumBedPt.toFixed(2);
+      $('cum-eqd2-med').textContent = cumEqPt.toFixed(2);
+      $('cum-section').hidden = false;
+      eqd2p95 = cumEqPt;
+    } else {
+      $('cum-section').hidden = true;
+    }
+  }
+
+  /* Section 5: OAR constraint flagging */
+  const constraint = OAR_CONSTRAINTS[tissue];
+  if (constraint) {
+    $('oar-section').hidden = false;
+    const flagEl = $('oar-flag');
+    if (eqd2p95 !== null && eqd2p95 > constraint.limit) {
+      flagEl.innerHTML = `<div class="notice notice-warn">⚠ Upper bound of 90% interval (${eqd2p95.toFixed(2)} Gy) exceeds illustrative EQD2 constraint of ${constraint.limit} Gy.</div>`;
+    } else if (eqd2p95 !== null) {
+      flagEl.innerHTML = `<div class="notice notice-ok">✓ 90% interval within illustrative EQD2 constraint of ${constraint.limit} Gy.</div>`;
+    }
+  } else {
+    $('oar-section').hidden = true;
+  }
+}
+
+/* ── Event listeners ──────────────────────────────────────────────────── */
+inpTis.addEventListener('change', () => {
+  $('custom-ab').hidden = inpTis.value !== 'custom';
+  update();
+});
+
+togMc.addEventListener('change', () => {
+  $('mc-section').hidden = !togMc.checked;
+  update();
+});
+
+togPrior.addEventListener('change', () => {
+  $('prior-inputs').hidden = !togPrior.checked;
+  update();
+});
+
+[inpN, inpD, inpAbPt, inpAbLo, inpAbHi, inpNp, inpDp, inpGlo, inpGhi].forEach(el => {
+  el.addEventListener('input', update);
+});
+
+/* ── Section 6: Validation ────────────────────────────────────────────── */
+function runValidation() {
+  const cases = [
+    { n: 30, d: 2,  ab: 10,  expBED: 72.00,   expEQD2: 60.00   },
+    { n: 25, d: 2,  ab: 10,  expBED: 60.00,   expEQD2: 50.00   },
+    { n: 5,  d: 4,  ab: 3,   expBED: 46.6667, expEQD2: 28.00   },
+    { n: 20, d: 3,  ab: 1.5, expBED: 180.00,  expEQD2: 77.1429 },
+    { n: 35, d: 2,  ab: 10,  expBED: 84.00,   expEQD2: 70.00   },
+    { n: 15, d: 3,  ab: 10,  expBED: 58.50,   expEQD2: 48.75   }
+  ];
+
+  const tbody = $('val-tbody');
+  const TOL   = 0.01;
+  let   passes = 0;
+
+  cases.forEach((c, i) => {
+    const gotBED  = computeBED(c.n, c.d, c.ab);
+    const gotEQD2 = computeEQD2(c.n, c.d, c.ab);
+    const ok = Math.abs(gotBED - c.expBED) <= TOL && Math.abs(gotEQD2 - c.expEQD2) <= TOL;
+    if (ok) passes++;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-label">Case ${i + 1}</td>
+      <td>${c.n}</td>
+      <td>${c.d}</td>
+      <td>${c.ab}</td>
+      <td>${gotBED.toFixed(4)}</td>
+      <td>${c.expBED.toFixed(4)}</td>
+      <td>${gotEQD2.toFixed(4)}</td>
+      <td>${c.expEQD2.toFixed(4)}</td>
+      <td class="${ok ? 'pass' : 'fail'}">${ok ? 'PASS' : 'FAIL'}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const all = passes === cases.length;
+  $('val-summary').innerHTML = `<span style="color:${all ? 'var(--ok-text)' : 'var(--err-text)'}">
+    ${passes}/${cases.length} reference cases pass (tolerance ±0.01 Gy)
+  </span>`;
+}
+
+/* ── Init ─────────────────────────────────────────────────────────────── */
+runValidation();
+update();
+</script>
+</body>
+</html>
